@@ -143,4 +143,6 @@ $router->get('/aide/manuel', 'AideController@manuel', 'AuthMiddleware');
 // Déconnexion
 $router->get('/logout', 'AuthController@logout', 'AuthMiddleware');
 
+// Dispatcher la requête
+
 $router->dispatch();
