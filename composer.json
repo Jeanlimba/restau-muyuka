@@ -1,0 +1,8 @@
+{
+    "name": "muyak/restaurant",
+    "description": "Gestion de restaurant",
+    "require": {
+        "setasign/fpdf": "^1.8",
+        "shuchkin/simplexlsxgen": "^1.5"
+    }
+}

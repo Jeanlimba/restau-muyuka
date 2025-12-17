@@ -1,0 +1,2 @@
+ALTER TABLE ventes
+ADD COLUMN updated_at DATETIME NULL;
