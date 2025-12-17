@@ -33,6 +33,7 @@ function view($view, $data = []) {
     // Inclure le layout qui utilisera $content
     require $layoutFile;
 }
+//Ici juste pour voir si ça va marcher
 
 function redirect($path) {
     header("Location: $path");
