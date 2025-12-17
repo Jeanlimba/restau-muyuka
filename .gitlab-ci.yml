@@ -1,0 +1,39 @@
+# .gitlab-ci.yml
+image: alpine:latest
+
+stages:
+  - test
+
+test_connection:
+  stage: test
+  before_script:
+    - apk add --no-cache openssh-client
+    - mkdir -p ~/.ssh
+    
+    # Décoder la clé SSH depuis base64
+    - echo "$SSH_PRIVATE_KEY_BASE64" | base64 -d > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    
+    # Extraire IP et user réels
+    - REAL_HOST=$(echo "$EC2_HOST" | sed 's/^ip_//')
+    - REAL_USER=$(echo "$EC2_USER" | sed 's/^user_//')
+    
+    - ssh-keyscan -H "$REAL_HOST" >> ~/.ssh/known_hosts
+  script:
+    - |
+      echo "=== TEST GITLAB CI/CD ==="
+      echo "🖥️  EC2 IP: $REAL_HOST"
+      echo "👤 User: $REAL_USER"
+      
+      # Tester la connexion
+      ssh -o ConnectTimeout=10 "$REAL_USER@$REAL_HOST" "
+        echo '✅ Connecté à EC2 avec succès !'
+        echo '📅 Date: $(date)'
+        echo '🏠 Hostname: $(hostname)'
+        echo '📦 PHP: $(php --version | head -1)'
+        echo '🌐 Nginx: $(nginx -v 2>&1)'
+        
+        # Vérifier le dossier
+        echo '📁 Vérification /var/www/daniel:'
+        ls -la /var/www/daniel/ 2>/dev/null || echo 'Dossier non créé'
+      "
