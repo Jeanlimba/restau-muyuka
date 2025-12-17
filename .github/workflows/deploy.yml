@@ -1,0 +1,54 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    # Étape 1 : Récupérer le code
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    # Étape 2 : Copier les fichiers sur EC2 dans /var/www/daniel
+    - name: Copy files to EC2
+      uses: appleboy/scp-action@v0.1.4
+      with:
+        host: ${{ secrets.EC2_HOST }}
+        username: ${{ secrets.EC2_USER }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        source: "."
+        target: "/var/www/daniel"
+    
+    # Étape 3 : Exécuter les commandes sur EC2
+    - name: Run deployment commands
+      uses: appleboy/ssh-action@v0.1.5
+      with:
+        host: ${{ secrets.EC2_HOST }}
+        username: ${{ secrets.EC2_USER }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        script: |
+          echo "📦 Début du déploiement sur /var/www/daniel..."
+          
+          # Aller dans votre dossier d'application
+          cd /var/www/daniel
+          
+          # Vérifier les permissions
+          echo "Vérification des permissions..."
+          sudo chown -R ubuntu:ubuntu /var/www/daniel
+          
+          # Afficher le contenu (pour vérification)
+          echo "Contenu du dossier :"
+          ls -la
+          
+          # Vérifier que les fichiers sont bien copiés
+          echo "✅ Fichiers copiés dans /var/www/daniel !"
+          
+          # ICI : Vos commandes spécifiques
+          # Exemple pour Node.js : npm install && npm start
+          # Exemple pour PHP : composer install
+          
+          echo "🚀 Préparation terminée. Configurez maintenant vos commandes d'installation."
