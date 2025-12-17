@@ -1,0 +1,2 @@
+ALTER TABLE ventes
+ADD COLUMN numero_vente VARCHAR(50) NULL UNIQUE AFTER id;
