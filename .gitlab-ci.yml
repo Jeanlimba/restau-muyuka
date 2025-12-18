@@ -1,4 +1,4 @@
-# .gitlab-ci.yml - VERSION CORRECTE
+# .gitlab-ci.yml - VERSION CORRIGÉE
 image: alpine:latest
 
 stages:
@@ -9,34 +9,14 @@ test_connection:
   before_script:
     - apk add --no-cache openssh-client
     - mkdir -p ~/.ssh
-    
-    # 1. Décoder la clé depuis base64
-    - echo "Décodage de la clé SSH..."
     - echo "$SSH_PRIVATE_KEY_BASE64" | base64 -d > ~/.ssh/id_rsa
     - chmod 600 ~/.ssh/id_rsa
-    
-    # 2. Vérifier ce qui a été décodé
-    - echo "=== VÉRIFICATION CLÉ ==="
-    - head -2 ~/.ssh/id_rsa
-    - echo "..."
-    - tail -2 ~/.ssh/id_rsa
-    - echo "Taille: $(wc -l ~/.ssh/id_rsa) lignes"
-    
-    # 3. Extraire IP et user
     - REAL_HOST=$(echo "$EC2_HOST" | sed 's/^ip_//')
     - REAL_USER=$(echo "$EC2_USER" | sed 's/^user_//')
-    
-    # 4. Ajouter l'hôte aux known_hosts
     - ssh-keyscan -H "$REAL_HOST" >> ~/.ssh/known_hosts
-    
   script:
     - |
       echo "=== TEST DE CONNEXION ==="
       echo "IP: $REAL_HOST"
       echo "User: $REAL_USER"
-      
-      # Test simple
       ssh -o ConnectTimeout=10 "$REAL_USER@$REAL_HOST" "echo '🎉 Bonjour depuis GitLab CI/CD!'"
-      
-      # Vérifier PHP
-      ssh "$REAL_USER@$REAL_HOST" "which php && php --version | head -1"
