@@ -1,3 +1,4 @@
+# .github/workflows/deploy.yml
 name: Deploy PHP App to EC2
 
 on:
@@ -9,11 +10,9 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    # Étape 1 : Récupérer le code
     - name: Checkout code
       uses: actions/checkout@v4
     
-    # Étape 2 : Copier les fichiers sur EC2
     - name: Deploy to EC2
       uses: appleboy/scp-action@v0.1.4
       with:
@@ -23,7 +22,6 @@ jobs:
         source: "."
         target: "/var/www/daniel"
     
-    # Étape 3 : Configurer l'application PHP sur EC2
     - name: Configure PHP application
       uses: appleboy/ssh-action@v0.1.5
       with:
@@ -31,76 +29,13 @@ jobs:
         username: ${{ secrets.EC2_USER }}
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
-          echo "🚀 Début du déploiement PHP 8.3..."
-          
-          # 1. Aller dans le dossier
+          echo "🚀 Configuration PHP..."
           cd /var/www/daniel
           
-          # 2. Vérifier les permissions
-          echo "Configuration des permissions..."
           sudo chown -R www-data:www-data /var/www/daniel
           sudo chmod -R 755 /var/www/daniel
           
-          # 3. Vérifier la version PHP
-          echo "Version PHP :"
-          php --version
-          
-          # 4. Configuration Nginx pour PHP 8.3
-          echo "Configuration Nginx..."
-          sudo bash -c 'cat > /etc/nginx/sites-available/daniel << EOF
-          server {
-              listen 80;
-              server_name _;
-              root /var/www/daniel/public;
-              index index.php index.html index.htm;
-              
-              location / {
-                  try_files \$uri \$uri/ /index.php?\$query_string;
-              }
-              
-              location ~ \.php$ {
-                  include snippets/fastcgi-php.conf;
-                  fastcgi_pass unix:/var/run/php/php8.3-fpm.sock;
-                  fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
-                  include fastcgi_params;
-              }
-              
-              location ~ /\.ht {
-                  deny all;
-              }
-          }
-          EOF'
-          
-          # 5. Activer le site Nginx
-          sudo ln -sf /etc/nginx/sites-available/daniel /etc/nginx/sites-enabled/
-          sudo rm -f /etc/nginx/sites-enabled/default
-          
-          # 6. Tester et redémarrer Nginx
-          sudo nginx -t
+          sudo systemctl restart php8.3-fpm
           sudo systemctl reload nginx
           
-          # 7. Redémarrer PHP-FPM 8.3
-          sudo systemctl restart php8.3-fpm
-          
-          # 8. Installation Composer (si composer.json existe)
-          if [ -f "composer.json" ]; then
-            echo "Installation des dépendances Composer..."
-            composer install --no-dev --optimize-autoloader
-          fi
-          
-          # 9. Créer un fichier test si pas d'index.php
-          if [ ! -f "public/index.php" ]; then
-            echo "Création d'un fichier index.php de test..."
-            sudo bash -c 'cat > /var/www/daniel/public/index.php << EOF
-          <?php
-          echo "<h1>🚀 Application PHP 8.3 Déployée !</h1>";
-          echo "<p>Date: " . date(\"Y-m-d H:i:s\") . "</p>";
-          echo "<p>PHP Version: " . phpversion() . "</p>";
-          echo "<p>Dossier: " . __DIR__ . "</p>";
-          ?>
-          EOF'
-          fi
-          
-          # 10. Vérification finale
-          echo "✅ Déploiement terminé avec succès !"
-          echo "🌐 Votre application est disponible sur : http://${{ secrets.EC2_HOST }}"
+          echo "✅ Déploiement réussi !"
