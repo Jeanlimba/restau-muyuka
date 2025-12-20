@@ -9,7 +9,7 @@ class User {
     
     public function authenticate($email, $password) {
         $stmt = $this->pdo->prepare(
-            "SELECT u.id, u.nom, u.email, u.password, u.actif, p.fonction 
+            "SELECT u.id, u.nom, u.email, u.password, u.actif 
              FROM users u
              LEFT JOIN personnel p ON u.id = p.user_id
              WHERE u.email = ? AND u.actif = 1"
