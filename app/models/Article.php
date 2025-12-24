@@ -78,59 +78,49 @@ class Article {
     }
 
     public function create($data) {
-        try {
-            $stmt = $this->pdo->prepare(
-                "INSERT INTO articles (nom, categorie, unite_mesure_id, purchase_unite_mesure_id, conversion_factor, type_tarification, prix) 
-                 VALUES (?, ?, ?, ?, ?, ?, ?)"
-            );
-            $stmt->execute([
-                $data['nom'], 
-                $data['categorie'], 
-                $data['unite_mesure_id'],
-                $data['purchase_unite_mesure_id'] ?: null,
-                $data['conversion_factor'] ?: 1,
-                $data['type_tarification'],
-                $data['prix'] ?? 0.00
-            ]);
-            $articleId = $this->pdo->lastInsertId();
+        $stmt = $this->pdo->prepare(
+            "INSERT INTO articles (nom, categorie, unite_mesure_id, purchase_unite_mesure_id, conversion_factor, type_tarification, prix) 
+             VALUES (?, ?, ?, ?, ?, ?, ?)"
+        );
+        $stmt->execute([
+            $data['nom'], 
+            $data['categorie'], 
+            $data['unite_mesure_id'],
+            $data['purchase_unite_mesure_id'] ?: null,
+            $data['conversion_factor'] ?: 1,
+            $data['type_tarification'],
+            $data['prix'] ?? 0.00
+        ]);
+        $articleId = $this->pdo->lastInsertId();
 
-            if ($data['type_tarification'] === 'varie' && isset($data['tarifs'])) {
-                (new Tarif())->saveForArticle($articleId, $data['tarifs']);
-            }
-            
-            return $articleId;
-        } catch (Exception $e) {
-            return false;
+        if ($data['type_tarification'] === 'varie' && isset($data['tarifs'])) {
+            (new Tarif())->saveForArticle($articleId, $data['tarifs']);
         }
+        
+        return $articleId;
     }
 
     public function update($id, $data) {
-        try {
-            $stmt = $this->pdo->prepare(
-                "UPDATE articles SET nom = ?, categorie = ?, unite_mesure_id = ?, purchase_unite_mesure_id = ?, conversion_factor = ?, type_tarification = ?, prix = ? 
-                 WHERE id = ?"
-            );
-            $stmt->execute([
-                $data['nom'], 
-                $data['categorie'], 
-                $data['unite_mesure_id'],
-                $data['purchase_unite_mesure_id'] ?: null,
-                $data['conversion_factor'] ?: 1,
-                $data['type_tarification'], 
-                $data['prix'] ?? 0.00,
-                $id
-            ]);
+        $stmt = $this->pdo->prepare(
+            "UPDATE articles SET nom = ?, categorie = ?, unite_mesure_id = ?, purchase_unite_mesure_id = ?, conversion_factor = ?, type_tarification = ?, prix = ? 
+             WHERE id = ?"
+        );
+        $stmt->execute([
+            $data['nom'], 
+            $data['categorie'], 
+            $data['unite_mesure_id'],
+            $data['purchase_unite_mesure_id'] ?: null,
+            $data['conversion_factor'] ?: 1,
+            $data['type_tarification'], 
+            $data['prix'] ?? 0.00,
+            $id
+        ]);
 
-            $tarifModel = new Tarif();
-            if ($data['type_tarification'] === 'varie' && isset($data['tarifs'])) {
-                $tarifModel->saveForArticle($id, $data['tarifs']);
-            } else {
-                $tarifModel->saveForArticle($id, []);
-            }
-            
-            return true;
-        } catch (Exception $e) {
-            return false;
+        $tarifModel = new Tarif();
+        if ($data['type_tarification'] === 'varie' && isset($data['tarifs'])) {
+            $tarifModel->saveForArticle($id, $data['tarifs']);
+        } else {
+            $tarifModel->saveForArticle($id, []);
         }
     }
 

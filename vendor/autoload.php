@@ -6,9 +6,12 @@
 // ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'admin@L96/0KI+/XwIDAQAB';FLUSH PRIVILEGES;
 // CREATE DATABASE db_muyuka CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 // CREATE USER 'user_db_muyuka'@'localhost' IDENTIFIED BY 'admin@L96/0KI+/XwIDAQAB';
-// GRANT ALL PRIVILEGES ON db_muyuka.* TO 'user_db_muyuka'@'localhost';
+// GRANT ALL PRIVILEGES ON db_muyuka.* TO 'user_db_muyuka'@'localhost';FLUSH PRIVILEGES;
+// admin123 mot de passe mysql
 
-
+// ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'admin@L96/0KI+/XwIDAQAB';    // please note here replace the "password" with yours.
+	
+	// FLUSH PRIVILEGES;
 
 if (PHP_VERSION_ID < 50600) {
     if (!headers_sent()) {

@@ -71,9 +71,6 @@
                                 <span>Sous-total HT</span>
                                 <strong id="cart-subtotal">0.00 Fc</strong>
                             </div>
-                            <div class="d-flex justify-content-between">
-                                <span>TVA (20%)</span>
-                                <strong id="cart-tax">0.00 Fc</strong>
                             </div>
                             <hr>
                             <div class="d-flex justify-content-between h2">
@@ -166,7 +163,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const cartContainer = document.getElementById('cart-container');
     const cartItemsTable = document.getElementById('cart-items-table');
     const cartSubtotalEl = document.getElementById('cart-subtotal');
-    const cartTaxEl = document.getElementById('cart-tax');
     const cartTotalEl = document.getElementById('cart-total');
     const validateSaleBtn = document.getElementById('validate-sale-btn');
     const printInvoiceBtn = document.getElementById('print-invoice-btn');
@@ -185,7 +181,6 @@ document.addEventListener('DOMContentLoaded', function () {
         if (Object.keys(cart).length === 0) {
             cartItemsTable.innerHTML = '<div class="text-center text-muted p-3">Le panier est vide.</div>';
             cartSubtotalEl.textContent = formatCurrency(0);
-            cartTaxEl.textContent = formatCurrency(0);
             cartTotalEl.textContent = formatCurrency(0);
             validateSaleBtn.disabled = true;
             return;
@@ -216,11 +211,7 @@ document.addEventListener('DOMContentLoaded', function () {
             tr.innerHTML = `
                 <td>${item.data.nom}</td>
                 <td>
-                    <div class="input-group input-group-sm">
-                        <button class="btn" type="button" data-action="decrease" data-id="${articleId}">-</button>
-                        <input type="text" class="form-control text-center" value="${item.quantite}" readonly>
-                        <button class="btn" type="button" data-action="increase" data-id="${articleId}">+</button>
-                    </div>
+                    <input type="number" class="form-control form-control-sm text-center" value="${item.quantite}" min="1" data-action="quantite-change" data-id="${articleId}">
                 </td>
                 <td>
                     <input type="number" class="form-control form-control-sm" value="${item.prix.toFixed(2)}" data-action="price-change" data-id="${articleId}">
@@ -241,10 +232,8 @@ document.addEventListener('DOMContentLoaded', function () {
         
         cartItemsTable.appendChild(table);
 
-        tax = subtotal * 0.20;
         cartSubtotalEl.textContent = formatCurrency(subtotal);
-        cartTaxEl.textContent = formatCurrency(tax);
-        cartTotalEl.textContent = formatCurrency(subtotal + tax);
+        cartTotalEl.textContent = formatCurrency(subtotal);
         validateSaleBtn.disabled = !tableSelect.value || Object.keys(cart).length === 0;
     };
 
@@ -252,15 +241,6 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!cart[articleId]) return;
 
         switch(action) {
-            case 'increase':
-                cart[articleId].quantite++;
-                break;
-            case 'decrease':
-                cart[articleId].quantite--;
-                if (cart[articleId].quantite <= 0) {
-                    delete cart[articleId];
-                }
-                break;
             case 'remove':
                 delete cart[articleId];
                 break;
@@ -268,6 +248,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 const newPrice = parseFloat(value);
                 if (!isNaN(newPrice) && newPrice >= 0) {
                     cart[articleId].prix = newPrice;
+                }
+                break;
+            case 'quantite-change':
+                const newQuantite = parseInt(value);
+                if (!isNaN(newQuantite) && newQuantite >= 1) {
+                    cart[articleId].quantite = newQuantite;
+                } else if (newQuantite <= 0) {
+                    delete cart[articleId];
                 }
                 break;
         }
@@ -288,6 +276,9 @@ document.addEventListener('DOMContentLoaded', function () {
         if (e.target.dataset.action === 'price-change') {
             const { id } = e.target.dataset;
             updateCart(id, 'price-change', e.target.value);
+        } else if (e.target.dataset.action === 'quantite-change') {
+            const { id } = e.target.dataset;
+            updateCart(id, 'quantite-change', e.target.value);
         }
     });
 
@@ -306,8 +297,26 @@ document.addEventListener('DOMContentLoaded', function () {
         const articlesData = await articlesRes.json();
         if (articlesData.success) {
             articles = articlesData.articles;
+            
+            // Group articles by category
+            const groupedArticles = articles.reduce((acc, article) => {
+                const category = article.categorie || 'Autres'; // Default to 'Autres' if no category
+                if (!acc[category]) {
+                    acc[category] = [];
+                }
+                acc[category].push(article);
+                return acc;
+            }, {});
+
             articleSelect.innerHTML = '<option value="">-- Choisir un article --</option>';
-            articles.forEach(a => articleSelect.innerHTML += `<option value="${a.id}">${a.nom}</option>`);
+            for (const category in groupedArticles) {
+                const optgroup = document.createElement('optgroup');
+                optgroup.label = category;
+                groupedArticles[category].forEach(a => {
+                    optgroup.innerHTML += `<option value="${a.id}">${a.nom}</option>`;
+                });
+                articleSelect.appendChild(optgroup);
+            }
         }
         renderCart(); // Initial render for empty cart
     };
@@ -326,16 +335,35 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
         
-        const tablesRes = await fetch(`${API_URLS.tables}?zone_id=${selectedZoneId}`);
-        const tablesData = await tablesRes.json();
-        if (tablesData.success) {
-            tableSelect.innerHTML = '<option value="">-- Choisir une table --</option>';
-            tablesData.tables.forEach(t => tableSelect.innerHTML += `<option value="${t.id}">${t.nom}</option>`);
-            tableSelect.disabled = false;
+        try {
+            const tablesRes = await fetch(`${API_URLS.tables}?zone_id=${selectedZoneId}`);
+            if (!tablesRes.ok) {
+                 throw new Error('La réponse du réseau n\'était pas correcte.');
+            }
+            const tablesData = await tablesRes.json();
+
+            if (tablesData.success && tablesData.tables.length > 0) {
+                tableSelect.innerHTML = '<option value="">-- Choisir une table --</option>';
+                tablesData.tables.forEach(t => tableSelect.innerHTML += `<option value="${t.id}">${t.nom}</option>`);
+                tableSelect.disabled = false;
+                
+                // Activer la section d'ajout d'article
+                addItemSection.style.opacity = 1;
+                addItemSection.style.pointerEvents = 'auto';
+            } else {
+                tableSelect.innerHTML = '<option value="">-- Aucune table disponible --</option>';
+                tableSelect.disabled = true;
+                // Garder la section article désactivée
+                addItemSection.style.opacity = 0.5;
+                addItemSection.style.pointerEvents = 'none';
+            }
+        } catch (error) {
+            console.error("Erreur lors de la récupération des tables:", error);
+            tableSelect.innerHTML = '<option value="">-- Erreur de chargement --</option>';
+            tableSelect.disabled = true;
+            addItemSection.style.opacity = 0.5;
+            addItemSection.style.pointerEvents = 'none';
         }
-        
-        addItemSection.style.opacity = 1;
-        addItemSection.style.pointerEvents = 'auto';
     });
 
     const articleSuggestions = document.getElementById('article-suggestions');

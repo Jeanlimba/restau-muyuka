@@ -1,10 +1,13 @@
 <?php
 session_start();
 
-require_once '../vendor/autoload.php';
-require_once '../utils/helpers.php';
-require_once '../app/core/Router.php';
-require_once '../app/core/Database.php';
+// Définir le chemin de base du projet
+define('BASE_PATH', __DIR__ . '/../');
+
+require_once BASE_PATH . 'vendor/autoload.php';
+require_once BASE_PATH . 'utils/helpers.php';
+require_once BASE_PATH . 'app/core/Router.php';
+require_once BASE_PATH . 'app/core/Database.php';
 
 $router = new Router();
 

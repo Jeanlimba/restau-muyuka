@@ -6,13 +6,88 @@ class FacturePdf extends FPDF
     protected $javascript;
     protected $n_js;
 
-    public function __construct($venteData)
+        public function __construct($venteData)
     {
-        parent::__construct('P', 'mm', [80, 250]); 
-        $this->vente = $venteData;
+        $this->vente = $venteData; // Doit être défini tôt pour _groupLignes
+
+        // --- Calcul de la hauteur dynamique de la page ---
+        $lignesGroupees = $this->_groupLignes();
+        
+        // Regrouper par catégorie pour le calcul de la hauteur
+        $categories = [];
+        foreach ($lignesGroupees as $ligne) {
+            $categories[$ligne['categorie']][] = $ligne;
+        }
+
+        // Crée une instance FPDF temporaire pour les calculs de largeur de texte
+        $tempPdf = new FPDF('P', 'mm', [80, 80]);
+        $tempPdf->AddPage();
+        $tempPdf->SetFont('Arial', '', 8);
+
+        $articleRowsHeight = 0;
+        $multiCellWidth = 30; // Largeur de la cellule "Désignation" de la méthode generate()
+        $lineHeight = 5;      // Hauteur de ligne dans MultiCell de la méthode generate()
+
+        foreach ($lignesGroupees as $ligne) {
+            $text = $this->toIso(stripslashes($ligne['article_nom']));
+            $words = explode(' ', $text);
+            $lineCount = 1;
+            $currentLine = '';
+            foreach ($words as $word) {
+                $sep = $currentLine === '' ? '' : ' ';
+                if ($tempPdf->GetStringWidth($currentLine . $sep . $word) < $multiCellWidth) {
+                    $currentLine .= $sep . $word;
+                } else {
+                    $lineCount++;
+                    $currentLine = $word;
+                }
+            }
+            $articleRowsHeight += $lineCount * $lineHeight;
+        }
+        unset($tempPdf);
+
+        // Hauteur ajoutée par les en-têtes de catégorie (Ln(2) + Cell(5))
+        $categoryHeaderHeight = count($categories) * 7;
+        // Hauteur ajoutée par les sous-totaux de catégorie (Cell(6) + Ln(2))
+        $subtotalHeight = count($categories) * 8;
+
+        $headerHeight = 50;
+        $contentStaticHeight = 25;
+        $footerHeight = 15;
+        $margins = 10;
+
+        $totalHeight = $headerHeight + $contentStaticHeight + $articleRowsHeight + $categoryHeaderHeight + $subtotalHeight + $footerHeight + $margins;
+        // --- Fin du calcul ---
+
+        parent::__construct('P', 'mm', [80, $totalHeight]);
         $this->AddPage();
         $this->SetAutoPageBreak(true, 5);
         $this->SetMargins(5, 5, 5);
+    }
+
+    private function _groupLignes()
+    {
+        $lignesGroupees = [];
+        if (isset($this->vente['commandes'])) {
+            foreach ($this->vente['commandes'] as $commande) {
+                if (isset($commande['lignes'])) {
+                    foreach ($commande['lignes'] as $ligne) {
+                        $articleId = $ligne['article_id'];
+                        if (isset($lignesGroupees[$articleId])) {
+                            $lignesGroupees[$articleId]['quantite'] += $ligne['quantite'];
+                        } else {
+                            $lignesGroupees[$articleId] = [
+                                'article_nom' => $ligne['article_nom'],
+                                'quantite' => $ligne['quantite'],
+                                'prix_unitaire_ht' => $ligne['prix_unitaire_ht'],
+                                'categorie' => $ligne['article_categorie'] ?? 'Divers'
+                            ];
+                        }
+                    }
+                }
+            }
+        }
+        return $lignesGroupees;
     }
 
     private function toIso($string)
@@ -22,14 +97,17 @@ class FacturePdf extends FPDF
 
     public function Header()
     {
+        // Logo
+        $this->Image(BASE_PATH . 'public/img/logo.png', 30, 5, 20);
+        // Saut de ligne
+        $this->Ln(15);
+
         $this->SetFont('Arial', 'B', 10);
-        $this->Cell(0, 5, $this->toIso('RESTAURANT MUYAK'), 0, 1, 'C');
+        $this->Cell(0, 5, $this->toIso('RESTAURANT DANIEL\'S SERVICES'), 0, 1, 'C');
         
         $this->SetFont('Arial', '', 8);
-        $this->Cell(0, 4, $this->toIso('(+243) 99 99 89 867, 81 00 33 337'), 0, 1, 'C');
-        $this->Cell(0, 4, $this->toIso('danielsservice@gmail.com'), 0, 1, 'C');
-        $this->Cell(0, 4, $this->toIso('RCCM:CD/KIN/RCCM/15-A-2344'), 0, 1, 'C');
-        $this->Cell(0, 4, $this->toIso('Bandal synkin, avenue Sundi'), 0, 1, 'C');
+        $this->Cell(0, 4, $this->toIso('(+243) 999 989 867, 824 315 846'), 0, 1, 'C');
+        $this->Cell(0, 4, $this->toIso('Av. SUNDI N°7, Q/MAKELELE, BANDALUNGWA'), 0, 1, 'C');
         $this->Ln(2);
         
         $this->Cell(0, 2, '--------------------------------------------------', 0, 1, 'C');
@@ -41,138 +119,72 @@ class FacturePdf extends FPDF
     }
 
                 public function generate()
-
                 {
-
                     $this->SetFont('Arial', 'B', 10);
-
                     $this->Cell(0, 6, $this->toIso("FACTURE N° " . $this->vente['numero_vente']), 0, 1, 'C');
-
                     $this->Ln(2);
-
             
-
-                    // --- Logique de groupement des articles par article_id sur toute la vente ---
-
-                    $lignesGroupees = [];
-
-                    if (isset($this->vente['commandes'])) {
-
-                        foreach ($this->vente['commandes'] as $commande) {
-
-                            if (isset($commande['lignes'])) {
-
-                                foreach ($commande['lignes'] as $ligne) {
-
-                                    $articleId = $ligne['article_id'];
-
-                                    if (isset($lignesGroupees[$articleId])) {
-
-                                        // L'article existe déjà, on additionne la quantité
-
-                                        $lignesGroupees[$articleId]['quantite'] += $ligne['quantite'];
-
-                                    } else {
-
-                                        // C'est un nouvel article, on l'ajoute au tableau
-
-                                        $lignesGroupees[$articleId] = [
-
-                                            'article_nom' => $ligne['article_nom'],
-
-                                            'quantite' => $ligne['quantite'],
-
-                                            'prix_unitaire_ht' => $ligne['prix_unitaire_ht']
-
-                                        ];
-
-                                    }
-
-                                }
-
-                            }
-
-                        }
-
+                    $lignesGroupees = $this->_groupLignes();
+                    
+                    $categories = [];
+                    foreach ($lignesGroupees as $ligne) {
+                        $categories[$ligne['categorie']][] = $ligne;
                     }
-
-                    // --- Fin de la logique de groupement ---
-
-            
-
-                    // En-tête du tableau
 
                     $this->SetFont('Arial', 'B', 8);
-
                     $this->Cell(30, 6, $this->toIso("Désignation"), 'B', 0, 'L');
-
                     $this->Cell(8, 6, $this->toIso("Qte"), 'B', 0, 'C');
-
                     $this->Cell(16, 6, $this->toIso("P.U."), 'B', 0, 'R');
-
                     $this->Cell(16, 6, $this->toIso("P.T."), 'B', 1, 'R');
-
             
-
                     $this->SetFont('Arial', '', 8);
-
-                    $montant = 0;
-
+                    $montantTotal = 0;
                     
+                    foreach ($categories as $nomCategorie => $lignesDeLaCategorie) {
+                        $this->Ln(2);
+                        $this->SetFont('Arial', 'B', 8);
+                        // Style du titre de la catégorie
+                        $titreCategorie = '----- ' . $this->toIso(ucfirst($nomCategorie)) . ' -----';
+                        $this->Cell(0, 5, $titreCategorie, 0, 1, 'C');
+                        $this->SetFont('Arial', '', 8);
 
-                    // Boucle sur les articles maintenant groupés
-
-                    foreach ($lignesGroupees as $ligne) {
-
-                        $totalLigne = $ligne['prix_unitaire_ht'] * $ligne['quantite'];
-
-                        $montant += $totalLigne;
-
-            
-
-                        $y_before = $this->GetY();
-
-                        $this->MultiCell(30, 5, $this->toIso(stripslashes($ligne['article_nom'])), 0, 'L');
-
-                        $y_after = $this->GetY();
-
-                        $height = $y_after - $y_before;
-
+                        $montantCategorie = 0;
+                        foreach ($lignesDeLaCategorie as $ligne) {
+                            $totalLigne = $ligne['prix_unitaire_ht'] * $ligne['quantite'];
+                            $montantCategorie += $totalLigne;
+                
+                            $y_before = $this->GetY();
+                            $this->MultiCell(30, 5, $this->toIso(stripslashes($ligne['article_nom'])), 0, 'L');
+                            $y_after = $this->GetY();
+                            $height = $y_after - $y_before;
+                            
+                            $this->SetXY($this->GetX() + 30, $y_before); 
+                
+                            $this->Cell(8, $height, $this->toIso($ligne['quantite']), 0, 0, 'C');
+                            $this->Cell(16, $height, number_format($ligne['prix_unitaire_ht'], 0, ',', ' '), 0, 0, 'R');
+                            $this->Cell(16, $height, number_format($totalLigne, 0, ',', ' '), 0, 1, 'R');
+                        }
                         
-
-                        $this->SetXY($this->GetX() + 30, $y_before); 
-
-            
-
-                        $this->Cell(8, $height, $this->toIso($ligne['quantite']), 0, 0, 'C');
-
-                        $this->Cell(16, $height, number_format($ligne['prix_unitaire_ht'], 0, ',', ' '), 0, 0, 'R');
-
-                        $this->Cell(16, $height, number_format($totalLigne, 0, ',', ' '), 0, 1, 'R');
-
+                        // Afficher le sous-total de la catégorie
+                        $this->SetFont('Arial', 'B', 8);
+                        $this->Cell(54, 6, $this->toIso("Sous-total"), 0, 0, 'R');
+                        $this->Cell(16, 6, number_format($montantCategorie, 0, ',', ' ') . ' Fc', 0, 1, 'R');
+                        
+                        $montantTotal += $montantCategorie;
                     }
-
             
-
                     $this->Ln(2);
-
                     $this->SetFont('Arial', 'B', 9);
-
                     $this->Cell(0, 0, '', 'T', 1);
-
                     $this->Ln(1);
-
                     
-
                     $this->Cell(54, 6, "TOTAL", 0, 0, 'L');
-
-                    $this->Cell(16, 6, number_format($montant, 0, ',', ' ') . ' Fc', 0, 1, 'R');
-
+                    $this->Cell(16, 6, number_format($montantTotal, 0, ',', ' ') . ' Fc', 0, 1, 'R');
                 }
 
     public function Footer()
     {
-        $this->SetY(-25);
+        $this->SetY(-8);
         $this->SetFont('Arial', 'I', 8);
         $this->Cell(0, 4, $this->toIso('Merci et à bientôt'), 0, 1, 'C');
         

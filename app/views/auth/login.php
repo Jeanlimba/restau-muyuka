@@ -26,5 +26,3 @@
     </div>
 </div>
 
-<?php echo "PASSWORD_DEFAULT: " . PASSWORD_DEFAULT . "\n"; ?>
-<?php echo "PASSWORD_BCRYPT: " . PASSWORD_BCRYPT . "\n"; ?> 

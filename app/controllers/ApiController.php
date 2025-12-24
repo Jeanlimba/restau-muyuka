@@ -90,6 +90,7 @@ class ApiController {
             }
             $zoneId = $table['zone_id'];
     
+            $articleModel = new Article();
             foreach ($input['articles'] as $article) {
                 $articleInfo = $articleModel->find($article['article_id']);
                 if (!$articleInfo) {

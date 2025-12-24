@@ -60,7 +60,7 @@
 <body>
 
     <header class="header">
-        <h1>RESTAURANT MUYAK</h1>
+        <h1>RESTAURANT DANIEL'S SERVICES</h1>
         <p>Votre adresse ici<br>Tel: +221 00 000 00 00</p>
     </header>
 

@@ -29,30 +29,22 @@ class Tarif {
      * @param array $tarifs Un tableau associatif [zone_id => prix].
      * @return bool
      */
-    public function saveForArticle(int $articleId, array $tarifs): bool {
-        $this->pdo->beginTransaction();
-        try {
-            // D'abord, supprimer les anciens tarifs pour cet article
-            $stmtDelete = $this->pdo->prepare("DELETE FROM tarifs WHERE article_id = ?");
-            $stmtDelete->execute([$articleId]);
+    public function saveForArticle(int $articleId, array $tarifs): void {
+        // La gestion de la transaction est maintenant gérée par le contrôleur.
+        
+        // D'abord, supprimer les anciens tarifs pour cet article
+        $stmtDelete = $this->pdo->prepare("DELETE FROM tarifs WHERE article_id = ?");
+        $stmtDelete->execute([$articleId]);
 
-            // Ensuite, insérer les nouveaux tarifs
-            $stmtInsert = $this->pdo->prepare(
-                "INSERT INTO tarifs (article_id, zone_id, prix) VALUES (?, ?, ?)"
-            );
-            foreach ($tarifs as $zoneId => $prix) {
-                // N'insérer que si un prix est spécifié
-                if (!empty($prix) && is_numeric($prix)) {
-                    $stmtInsert->execute([$articleId, $zoneId, $prix]);
-                }
+        // Ensuite, insérer les nouveaux tarifs
+        $stmtInsert = $this->pdo->prepare(
+            "INSERT INTO tarifs (article_id, zone_id, prix) VALUES (?, ?, ?)"
+        );
+        foreach ($tarifs as $zoneId => $prix) {
+            // N'insérer que si un prix est spécifié et valide (y compris 0)
+            if (is_numeric($prix) && $prix !== '' && $prix !== null) {
+                $stmtInsert->execute([$articleId, $zoneId, $prix]);
             }
-
-            $this->pdo->commit();
-            return true;
-        } catch (Exception $e) {
-            $this->pdo->rollBack();
-            error_log($e->getMessage());
-            return false;
         }
     }
 

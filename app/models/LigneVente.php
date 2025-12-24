@@ -16,7 +16,7 @@ class LigneVente {
     public function create(int $commandeId, array $lignes): bool {
         try {
             $stmt = $this->pdo->prepare(
-                'INSERT INTO lignes_vente (commande_id, article_id, quantite, prix_unitaire_ht, tva) 
+                'INSERT INTO lignes_vente (commande_id, article_id, quantite, prix_unitaire_ht, tva, cout_achat_unitaire) 
                  VALUES (:commande_id, :article_id, :quantite, :prix_unitaire_ht, :tva, :cout_achat_unitaire)'
             );
 
@@ -41,7 +41,7 @@ class LigneVente {
      */
     public function findByCommandeId(int $commandeId): array {
         $stmt = $this->pdo->prepare(
-            'SELECT lv.*, a.nom AS article_nom 
+            'SELECT lv.*, a.nom AS article_nom, a.categorie as article_categorie 
              FROM lignes_vente lv
              JOIN articles a ON lv.article_id = a.id
              WHERE lv.commande_id = :commande_id'
