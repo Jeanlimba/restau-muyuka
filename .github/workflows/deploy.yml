@@ -1,23 +1,40 @@
-name: Deploy to EC2
+name: Pro Deployment - EC2 Rsync
 
 on:
   push:
     branches:
-      - main  # Le déploiement se lancera à chaque push sur la branche main
+      - main  # Le déploiement se déclenche quand vous poussez sur main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Connexion SSH et déploiement
+      # 1. Récupérer le code du dépôt GitHub
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2. Déployer les fichiers sur l'EC2 via Rsync
+      - name: Deploy to Server
+        uses: easingthemes/ssh-deploy@main
+        with:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          ARGS: "-avzr --delete" # Synchronisation complète et suppression des fichiers obsolètes
+          REMOTE_HOST: ${{ secrets.EC2_HOST }}
+          REMOTE_USER: ${{ secrets.EC2_USER }}
+          TARGET: "/var/www/html" # <--- MODIFIEZ CE CHEMIN vers votre dossier sur l'EC2
+          EXCLUDE: "/.git/, /.github/, /node_modules/" # On n'envoie pas les dossiers inutiles
+
+      # 3. (Optionnel) Exécuter des commandes après le transfert (ex: redémarrer un service)
+      - name: Post-deployment commands
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cd /var/www/html
-            # <--- MODIFIEZ CECI PAR VOTRE CHEMIN
-            git pull origin main
-            # Optionnel : Ajoutez ici vos commandes de redémarrage (ex: npm install, sudo systemctl restart nginx, etc.)
+            echo "Déploiement terminé avec succès !"
+            # Ajoutez ici vos commandes si besoin (ex: npm install ou sudo systemctl restart nginx)
+
+
+
