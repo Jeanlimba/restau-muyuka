@@ -1,41 +1,23 @@
-# .github/workflows/deploy.yml
-name: Deploy PHP App to EC2
+name: Deploy to EC2
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main  # Le déploiement se lancera à chaque push sur la branche main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    
-    - name: Deploy to EC2
-      uses: appleboy/scp-action@v0.1.4
-      with:
-        host: ${{ secrets.EC2_HOST }}
-        username: ${{ secrets.EC2_USER }}
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
-        source: "."
-        target: "/var/www/daniel"
-    
-    - name: Configure PHP application
-      uses: appleboy/ssh-action@v0.1.5
-      with:
-        host: ${{ secrets.EC2_HOST }}
-        username: ${{ secrets.EC2_USER }}
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
-        script: |
-          echo "🚀 Configuration PHP..."
-          cd /var/www/daniel
-          
-          sudo chown -R www-data:www-data /var/www/daniel
-          sudo chmod -R 755 /var/www/daniel
-          
-          sudo systemctl restart php8.3-fpm
-          sudo systemctl reload nginx
-          
-          echo "✅ Déploiement réussi !"
+      - name: Connexion SSH et déploiement
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /var/www/html
+            # <--- MODIFIEZ CECI PAR VOTRE CHEMIN
+            git pull origin main
+            # Optionnel : Ajoutez ici vos commandes de redémarrage (ex: npm install, sudo systemctl restart nginx, etc.)
