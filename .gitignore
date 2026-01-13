@@ -8,4 +8,4 @@ venv/
 # Pour Node.js
 node_modules/
 .env
-config/
+config/database.php

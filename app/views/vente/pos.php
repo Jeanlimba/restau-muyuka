@@ -193,7 +193,101 @@ document.addEventListener('DOMContentLoaded', function () {
                 <tr>
                     <th>Article</th>
                     <th style="width: 120px;">Qté</th>
-                    <th style="width: 120px;">Prix U.</th>
+const renderCart = () => {
+    cartItemsTable.innerHTML = '';
+    let subtotal = 0;
+    let tax = 0;
+
+    if (Object.keys(cart).length === 0) {
+        cartItemsTable.innerHTML = '<div class="text-center text-muted p-3">Le panier est vide.</div>';
+        cartSubtotalEl.textContent = formatCurrency(0);
+        cartTotalEl.textContent = formatCurrency(0);
+        validateSaleBtn.disabled = true;
+        return;
+    }
+
+    const table = document.createElement('table');
+    table.className = 'table table-vcenter';
+    table.innerHTML = `
+        <thead>
+            <tr>
+                <th>Article</th>
+                <th style="width: 120px;">Qté</th>
+                <th>Total</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    `;
+    const tbody = table.querySelector('tbody');
+
+    for (const articleId in cart) {
+        const item = cart[articleId];
+        const itemTotal = item.prix * item.quantite;
+        subtotal += itemTotal;
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${item.data.nom}</td>
+            <td>
+                <input type="number" class="form-control form-control-sm text-center" value="${item.quantite}" min="1" data-action="quantite-change" data-id="${articleId}">
+            </td>
+            <td>${formatCurrency(itemTotal)}</td>
+            <td>
+                <button class="btn btn-sm btn-icon btn-ghost-danger" data-action="remove" data-id="${articleId}">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-x" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                       <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                       <path d="M18 6l-12 12"></path>
+                       <path d="M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    }
+
+    cartItemsTable.appendChild(table);
+
+    cartSubtotalEl.textContent = formatCurrency(subtotal);
+    cartTotalEl.textContent = formatCurrency(subtotal);
+    validateSaleBtn.disabled = !tableSelect.value || Object.keys(cart).length === 0;
+};
+
+const updateCart = (articleId, action, value = null) => {
+    if (!cart[articleId]) return;
+
+    switch(action) {
+        case 'remove':
+            delete cart[articleId];
+            break;
+        case 'quantite-change':
+            const newQuantite = parseInt(value);
+            if (!isNaN(newQuantite) && newQuantite >= 1) {
+                cart[articleId].quantite = newQuantite;
+            } else if (newQuantite <= 0) {
+                delete cart[articleId];
+            }
+            break;
+    }
+    renderCart();
+};
+
+cartItemsTable.addEventListener('click', (e) => {
+    const target = e.target.closest('button');
+    if (target) {
+        const { action, id } = target.dataset;
+        if (action && id) {
+            updateCart(id, action);
+        }
+    }
+});
+
+cartItemsTable.addEventListener('change', (e) => {
+    if (e.target.dataset.action === 'quantite-change') {
+        const { id } = e.target.dataset;
+        updateCart(id, 'quantite-change', e.target.value);
+    }
+});
                     <th>Total</th>
                     <th></th>
                 </tr>
