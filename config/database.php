@@ -5,19 +5,19 @@
 $dotenv = parse_ini_file(__DIR__ . '/../.env');
 
 // Configuration basée sur .env
-return [
-    'host' => 'localhost',
-    'dbname' => 'db_muyak',
-    'username' => 'root',
-    'password' =>  ''
-];
-
-
-
 // return [
 //     'host' => 'localhost',
-//     'dbname' => 'db_muyuka',
-//     'username' => 'user_db_muyuka',
-//     'password' =>  'admin@L96/0KI+/XwIDAQAB',
+//     'dbname' => 'db_muyak',
+//     'username' => 'root',
+//     'password' =>  ''
 // ];
+
+
+
+return [
+    'host' => 'localhost',
+    'dbname' => 'db_muyuka',
+    'username' => 'user_db_muyuka',
+    'password' =>  'admin@L96/0KI+/XwIDAQAB',
+];
 
