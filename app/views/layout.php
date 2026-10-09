@@ -9,6 +9,49 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/tabler@latest/dist/js/tabler.min.js"></script>
+    <meta name="csrf-token" content="<?= htmlspecialchars(csrf_token()) ?>">
+    <script>
+    // Protection CSRF : ajoute le jeton à tous les formulaires POST et aux fetch non-GET
+    (function () {
+        const token = document.querySelector('meta[name="csrf-token"]').content;
+
+        function addToken(form) {
+            if ((form.method || '').toLowerCase() !== 'post' || form.querySelector('input[name="_csrf"]')) return;
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = '_csrf';
+            input.value = token;
+            form.appendChild(input);
+        }
+
+        document.addEventListener('submit', e => addToken(e.target), true);
+
+        const originalFetch = window.fetch;
+        window.fetch = function (input, init = {}) {
+            const method = (init.method || 'GET').toUpperCase();
+            const url = new URL(typeof input === 'string' ? input : input.url, location.href);
+            if (method !== 'GET' && method !== 'HEAD' && url.origin === location.origin) {
+                const headers = new Headers(init.headers || {});
+                headers.set('X-CSRF-Token', token);
+                init = { ...init, headers };
+            }
+            return originalFetch.call(this, input, init);
+        };
+
+        // Liens d'action (suppression…) : <a href="..." data-method="post"> envoie un POST
+        document.addEventListener('click', function (e) {
+            const link = e.target.closest('a[data-method="post"]');
+            if (!link || e.defaultPrevented) return;
+            e.preventDefault();
+            const form = document.createElement('form');
+            form.method = 'post';
+            form.action = link.getAttribute('href');
+            addToken(form);
+            document.body.appendChild(form);
+            form.submit();
+        });
+    })();
+    </script>
 </head>
 <body>
     <?php if (isset($_SESSION['user']) && is_array($_SESSION['user'])): ?>
@@ -61,7 +104,9 @@
                                 <a class="dropdown-item" href="/gestion-unites">Gestion Unités</a>
                                 <a class="dropdown-item" href="/articles">Gestion Articles</a>
                                 <a class="dropdown-item" href="/equipements">Gestion Équipements</a>
+                                <?php if (is_admin()): ?>
                                 <a class="dropdown-item" href="/users">Gestion Serveurs</a>
+                                <?php endif; ?>
                             </div>
                         </li>
 
@@ -185,7 +230,7 @@
                                     <button type="button" class="btn w-100" data-bs-dismiss="modal">Annuler</button>
                                 </div>
                                 <div class="col">
-                                    <a href="#" id="confirm-button" class="btn btn-danger w-100">Supprimer</a>
+                                    <a href="#" id="confirm-button" data-method="post" class="btn btn-danger w-100">Supprimer</a>
                                 </div>
                             </div>
                         </div>

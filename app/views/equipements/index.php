@@ -17,9 +17,11 @@
                     <a href="/equipements/etat-lieu" class="btn btn-outline-secondary">
                         <i class="fas fa-tasks me-2"></i>Faire l'état des lieux
                     </a>
+                    <?php if (is_admin()): ?>
                     <a href="/equipements/create" class="btn btn-primary">
                         <i class="fas fa-plus me-2"></i>Nouvel Équipement
                     </a>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
@@ -62,8 +64,12 @@
                             <td class="text-end"><?= htmlspecialchars(number_format((float)($equipement['valeur'] ?? 0) * $quantite_totale, 0, ',', ' ')) ?> Fc</td>
                             <td>
                                 <div class="btn-list flex-nowrap">
+                                    <?php if (is_admin()): ?>
                                     <a href="/equipements/edit/<?= $equipement['id'] ?>" class="btn btn-sm">Modifier</a>
-                                    <a href="/equipements/delete/<?= $equipement['id'] ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('Voulez-vous vraiment supprimer cet équipement ?')">Supprimer</a>
+                                    <?php endif; ?>
+                                    <?php if (is_admin()): ?>
+                                    <a href="/equipements/delete/<?= $equipement['id'] ?>" data-method="post" class="btn btn-sm btn-outline-danger" onclick="return confirm('Voulez-vous vraiment supprimer cet équipement ?')">Supprimer</a>
+                                    <?php endif; ?>
                                 </div>
                             </td>
                         </tr>

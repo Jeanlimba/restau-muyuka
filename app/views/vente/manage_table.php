@@ -73,7 +73,7 @@
                                                         <td class="text-end"><?= number_format($ligne['prix_unitaire_ht'], 0, ',', ' ') ?> F</td>
                                                         <td class="text-end fw-bold"><?= number_format($ligne['prix_unitaire_ht'] * $ligne['quantite'], 0, ',', ' ') ?> F</td>
                                                         <td class="text-center">
-                                                            <a href="/remove-ligne/<?= $ligne['id'] ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet article ?');">
+                                                            <a href="/remove-ligne/<?= $ligne['id'] ?>" data-method="post" class="btn btn-sm btn-outline-danger" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet article ?');">
                                                                 Supprimer
                                                             </a>
                                                         </td>

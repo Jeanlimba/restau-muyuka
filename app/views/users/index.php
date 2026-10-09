@@ -41,7 +41,7 @@
                             <td>
                                 <div class="btn-list flex-nowrap">
                                     <a href="/users/edit/<?= $user['user_id'] ?>" class="btn btn-sm">Modifier</a>
-                                    <a href="/users/delete/<?= $user['user_id'] ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('Voulez-vous vraiment supprimer cet utilisateur ?')">Supprimer</a>
+                                    <a href="/users/delete/<?= $user['user_id'] ?>" data-method="post" class="btn btn-sm btn-outline-danger" onclick="return confirm('Voulez-vous vraiment supprimer cet utilisateur ?')">Supprimer</a>
                                 </div>
                             </td>
                         </tr>

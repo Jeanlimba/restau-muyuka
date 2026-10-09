@@ -39,3 +39,24 @@ function redirect($path) {
     header("Location: $path");
     exit;
 }
+
+function is_admin() {
+    return ($_SESSION['user']['fonction'] ?? null) === 'Administrateur';
+}
+
+// Protection CSRF : un jeton par session, vérifié sur toutes les requêtes POST
+function csrf_token() {
+    if (empty($_SESSION['csrf_token'])) {
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    }
+    return $_SESSION['csrf_token'];
+}
+
+function verify_csrf() {
+    $token = $_POST['_csrf'] ?? $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
+    if (empty($_SESSION['csrf_token']) || !is_string($token) || !hash_equals($_SESSION['csrf_token'], $token)) {
+        http_response_code(419);
+        echo "Session expirée ou requête invalide. Rechargez la page et réessayez.";
+        exit;
+    }
+}

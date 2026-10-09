@@ -8,12 +8,10 @@ class AuthController {
             $user = (new User())->authenticate($email, $password);
             
             if ($user) {
+                // Nouvel identifiant de session pour empêcher la fixation de session
+                session_regenerate_id(true);
                 $_SESSION['user'] = $user;
                 $_SESSION['user_id'] = $user['id'];
-                echo "=== DEBUG: User session set ===";
-                echo "<pre>";
-                print_r($_SESSION['user']);
-                echo "</pre>";
                 redirect('/');
             } else {
                 $error = "Email ou mot de passe incorrect";
@@ -28,25 +26,9 @@ class AuthController {
         redirect('/login');
     }
 
-    // Nouvelle méthode pour gérer le mot de passe oublié
+    // Pas de réinitialisation en libre-service (aucun envoi d'email disponible) :
+    // un administrateur redéfinit le mot de passe depuis la gestion des agents.
     public function forgotPassword() {
-        if ($_POST) {
-            $email = $_POST['email'];
-
-            $result = (new User())->resetPassword($email);
-
-            if ($result['success']) {
-                view('auth/forgot_password', [
-                    'success' => true,
-                    'user' => $result['user'],
-                    'nouveau_mot_de_passe' => $result['nouveau_mot_de_passe']
-                ]);
-                return;
-            } else {
-                $error = "Aucun utilisateur trouvé avec cet email.";
-            }
-        }
-
-        view('auth/forgot_password', ['error' => $error ?? null]);
+        view('auth/forgot_password');
     }
 }

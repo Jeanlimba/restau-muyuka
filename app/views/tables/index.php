@@ -6,13 +6,17 @@
             </div>
             <div class="col-auto ms-auto d-print-none">
                 <div class="btn-list">
+                    <?php if (is_admin()): ?>
                     <a href="#" class="btn btn-secondary btn-square" data-bs-toggle="modal" data-bs-target="#modal-new-zone">
                         Nouvelle Zone
                     </a>
+                    <?php endif; ?>
+                    <?php if (is_admin()): ?>
                     <a href="#" class="btn btn-primary btn-square" data-bs-toggle="modal" data-bs-target="#modal-new-table">
                         <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
                         Nouvelle Table
                     </a>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
@@ -27,6 +31,7 @@
                     <div class="card-header bg-dark text-white">
                         <h3 class="card-title"><?= htmlspecialchars($zone['nom']) ?> (Préfixe: <?= htmlspecialchars($zone['prefixe'] ?? '') ?>)</h3>
                         <div class="card-actions">
+                            <?php if (is_admin()): ?>
                             <a href="#" class="btn btn-sm btn-light" data-bs-toggle="modal" data-bs-target="#modal-edit-zone"
                             data-zone-id="<?= $zone['id'] ?>"
                             data-zone-nom="<?= htmlspecialchars($zone['nom']) ?>"
@@ -34,6 +39,7 @@
                             data-zone-description="<?= htmlspecialchars($zone['description'] ?? '') ?>">
                                 Modifier la Zone
                             </a>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>
@@ -63,6 +69,7 @@
                                     ?>
                                     <span class="badge <?= $statusClass ?>"><?= ucfirst($table['statut']) ?></span>
                                     <div class="mt-3 btn-list">
+                                        <?php if (is_admin()): ?>
                                         <a href="#" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modal-edit-table"
                                             data-table-id="<?= $table['id'] ?>"
                                             data-table-numero="<?= $table['numero'] ?>"
@@ -70,7 +77,10 @@
                                             data-table-zone-id="<?= $table['zone_id'] ?>">
                                             Modifier
                                         </a>
-                                        <a href="/gestion-tables/delete/<?= $table['id'] ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette table ?')">Supprimer</a>
+                                        <?php endif; ?>
+                                        <?php if (is_admin()): ?>
+                                        <a href="/gestion-tables/delete/<?= $table['id'] ?>" data-method="post" class="btn btn-sm btn-outline-danger" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette table ?')">Supprimer</a>
+                                        <?php endif; ?>
                                     </div>
                                 </div>
                             </div>

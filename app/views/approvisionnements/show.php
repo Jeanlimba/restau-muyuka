@@ -11,9 +11,11 @@
                 <a href="/approvisionnements" class="btn btn-outline-secondary">
                     Retour à la liste
                 </a>
+                <?php if (is_admin()): ?>
                 <a href="/approvisionnement/edit/<?= $appro['id'] ?>" class="btn btn-primary ms-2">
                     Modifier
                 </a>
+                <?php endif; ?>
             </div>
         </div>
     </div>

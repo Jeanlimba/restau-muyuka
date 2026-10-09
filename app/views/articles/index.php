@@ -5,10 +5,12 @@
                 <h2 class="page-title text-primary">Gestion des Articles</h2>
             </div>
             <div class="col-auto ms-auto d-print-none">
+                <?php if (is_admin()): ?>
                 <a href="/articles/create" class="btn btn-primary btn-square">
                     <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                     Nouvel Article
                 </a>
+                <?php endif; ?>
             </div>
         </div>
     </div>
@@ -104,12 +106,16 @@
                             </td>
                             <td>
                                 <div class="btn-list flex-nowrap">
+                                    <?php if (is_admin()): ?>
                                     <a href="/articles/edit/<?= $article['id'] ?>" class="btn btn-icon btn-sm btn-outline-primary" title="Modifier">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1" /><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z" /><path d="M16 5l3 3" /></svg>
                                     </a>
-                                    <a href="/articles/delete/<?= $article['id'] ?>" class="btn btn-icon btn-sm btn-outline-danger" title="Supprimer" onclick="return confirm('Êtes-vous sûr ?')">
+                                    <?php endif; ?>
+                                    <?php if (is_admin()): ?>
+                                    <a href="/articles/delete/<?= $article['id'] ?>" data-method="post" class="btn btn-icon btn-sm btn-outline-danger" title="Supprimer" onclick="return confirm('Êtes-vous sûr ?')">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><line x1="4" y1="7" x2="20" y2="7" /><line x1="10" y1="11" x2="10" y2="17" /><line x1="14" y1="11" x2="14" y2="17" /><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12" /><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3" /></svg>
                                     </a>
+                                    <?php endif; ?>
                                 </div>
                             </td>
                         </tr>

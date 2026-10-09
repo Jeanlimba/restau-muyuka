@@ -56,8 +56,11 @@
                             <td>
                                 <div class="btn-list flex-nowrap">
                                     <a href="/vente/show/<?= $vente['id'] ?>" class="btn btn-sm">Voir</a>
+                                    <?php if (is_admin()): ?>
                                     <a href="/vente/edit/<?= $vente['id'] ?>" class="btn btn-sm">Modifier</a>
+                                    <?php endif; ?>
                                     <button class="btn btn-sm btn-outline-secondary btn-reimprimer" data-vente-id="<?= $vente['id'] ?>">Réimprimer</button>
+                                    <?php if (is_admin()): ?>
                                     <a href="#" 
                                        class="btn btn-sm btn-outline-danger btn-delete-vente" 
                                        data-bs-toggle="modal" 
@@ -67,6 +70,7 @@
                                        data-total="<?= htmlspecialchars(number_format($vente['total'], 0, ',', ' ')) ?> Fc">
                                         Supprimer
                                     </a>
+                                    <?php endif; ?>
                                 </div>
                             </td>
                         </tr>

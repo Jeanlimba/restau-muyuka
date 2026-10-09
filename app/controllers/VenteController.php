@@ -219,12 +219,17 @@ class VenteController {
             }
             
             // On doit trouver la vente parente pour la redirection et la mise à jour
-            $stmt = $pdo->prepare("SELECT v.id as vente_id, v.table_id FROM ventes v JOIN commandes c ON v.id = c.vente_id WHERE c.id = ?");
+            $stmt = $pdo->prepare("SELECT v.id as vente_id, v.table_id, v.statut FROM ventes v JOIN commandes c ON v.id = c.vente_id WHERE c.id = ?");
             $stmt->execute([$ligne['commande_id']]);
             $venteInfo = $stmt->fetch(PDO::FETCH_ASSOC);
 
             if (!$venteInfo) {
                 throw new Exception("Vente associée non trouvée.");
+            }
+
+            // Une vente encaissée ne peut être corrigée que par l'administrateur
+            if ($venteInfo['statut'] !== 'en_cours' && !is_admin()) {
+                throw new Exception("cette vente est clôturée, seul l'administrateur peut la modifier.");
             }
 
             // 1. Supprimer la ligne

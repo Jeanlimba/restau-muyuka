@@ -49,8 +49,12 @@
                             <td>
                                 <div class="btn-list flex-nowrap">
                                     <a href="/approvisionnement/<?= $item['id'] ?>" class="btn btn-sm">Voir</a>
+                                    <?php if (is_admin()): ?>
                                     <a href="/approvisionnement/edit/<?= $item['id'] ?>" class="btn btn-sm btn-outline-secondary">Modifier</a>
-                                    <a href="/approvisionnement/delete/<?= $item['id'] ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet approvisionnement ? Cette action réduira le stock des articles concernés.')">Supprimer</a>
+                                    <?php endif; ?>
+                                    <?php if (is_admin()): ?>
+                                    <a href="/approvisionnement/delete/<?= $item['id'] ?>" data-method="post" class="btn btn-sm btn-outline-danger" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet approvisionnement ? Cette action réduira le stock des articles concernés.')">Supprimer</a>
+                                    <?php endif; ?>
                                 </div>
                             </td>
                         </tr>

@@ -13,9 +13,11 @@
                     <div class="card-header bg-secondary text-white">
                         <h3 class="card-title">Unités de Vente</h3>
                         <div class="card-actions">
+                            <?php if (is_admin()): ?>
                             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal-new-unit" data-unit-type="vente">
                                 + Ajouter
                             </button>
+                            <?php endif; ?>
                         </div>
                     </div>
                     <div class="list-group list-group-flush">
@@ -27,6 +29,7 @@
                                     <div class="text-muted"><?= htmlspecialchars($unite['symbole']) ?></div>
                                 </div>
                                 <div class="col-auto">
+                                    <?php if (is_admin()): ?>
                                     <button class="btn btn-sm btn-outline-primary" 
                                             data-bs-toggle="modal" 
                                             data-bs-target="#modal-edit-unit"
@@ -36,7 +39,10 @@
                                             data-type="vente">
                                         Modifier
                                     </button>
-                                    <a href="/gestion-unites/delete/<?= $unite['id'] ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('Voulez-vous vraiment supprimer cette unité ?');">Supprimer</a>
+                                    <?php endif; ?>
+                                    <?php if (is_admin()): ?>
+                                    <a href="/gestion-unites/delete/<?= $unite['id'] ?>" data-method="post" class="btn btn-sm btn-outline-danger" onclick="return confirm('Voulez-vous vraiment supprimer cette unité ?');">Supprimer</a>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                         </div>
@@ -51,9 +57,11 @@
                     <div class="card-header bg-secondary text-white">
                         <h3 class="card-title">Unités d'Achat</h3>
                         <div class="card-actions">
+                            <?php if (is_admin()): ?>
                             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal-new-unit" data-unit-type="achat">
                                 + Ajouter
                             </button>
+                            <?php endif; ?>
                         </div>
                     </div>
                     <div class="list-group list-group-flush">
@@ -65,6 +73,7 @@
                                     <div class="text-muted"><?= htmlspecialchars($unite['symbole']) ?></div>
                                 </div>
                                 <div class="col-auto">
+                                     <?php if (is_admin()): ?>
                                      <button class="btn btn-sm btn-outline-primary" 
                                             data-bs-toggle="modal" 
                                             data-bs-target="#modal-edit-unit"
@@ -74,7 +83,10 @@
                                             data-type="achat">
                                         Modifier
                                     </button>
-                                    <a href="/gestion-unites/delete/<?= $unite['id'] ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('Voulez-vous vraiment supprimer cette unité ?');">Supprimer</a>
+                                     <?php endif; ?>
+                                    <?php if (is_admin()): ?>
+                                    <a href="/gestion-unites/delete/<?= $unite['id'] ?>" data-method="post" class="btn btn-sm btn-outline-danger" onclick="return confirm('Voulez-vous vraiment supprimer cette unité ?');">Supprimer</a>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                         </div>
